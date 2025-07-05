@@ -71,10 +71,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+DEBUG=False
 
-ALLOWED_HOSTS = ['192.168.0.199', 'localhost', '127.0.0.1','192.168.8.252',"af27-129-205-124-243.ngrok-free.app","c25e-102-89-34-246.ngrok-free.app"]
 # ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 
 # Application definition
@@ -157,7 +158,8 @@ DATABASES = {
         'NAME': 'vtu_db',
         'USER': 'vtu_user',
         'PASSWORD': 'geepos12@',
-        'HOST': 'localhost',
+        # 'HOST': 'localhost',
+        'HOST': '206.189.102.119',
         'PORT': '5432',
     }
 }
@@ -199,6 +201,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+# ✅ This line tells Django where to collect static files to
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Optional: For media uploads
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
