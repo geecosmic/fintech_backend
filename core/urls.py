@@ -2,7 +2,7 @@ from django.urls import path
 from .views import register
 from .import views
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import withdraw_funds,get_electricity_providers,verify_meter_number,verify_smartcard,EditProfileAPIView,flutterwave_webhook,TransactionHistoryView,FundWalletView,list_data_plans,user_dashboard,CustomLoginView,buy_electricity,CableTVPurchaseView,AirtimePurchaseView,DataPurchaseView,get_or_create_virtual_account
+from .views import Home,withdraw_funds,get_electricity_providers,verify_meter_number,verify_smartcard,EditProfileAPIView,flutterwave_webhook,TransactionHistoryView,FundWalletView,list_data_plans,user_dashboard,CustomLoginView,buy_electricity,CableTVPurchaseView,AirtimePurchaseView,DataPurchaseView,get_or_create_virtual_account
 
 
 
@@ -11,6 +11,7 @@ from .views import withdraw_funds,get_electricity_providers,verify_meter_number,
     
 
 urlpatterns = [
+    path('', Home.as_view(), name='home'),
 
     path('register/', register),
     path('login/', CustomLoginView.as_view(), name='login'),

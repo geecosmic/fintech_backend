@@ -25,9 +25,6 @@ load_dotenv()
 
 
 
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
-
-
 FLUTTERWAVE_SECRET_HASH=os.getenv('FLUTTERWAVE_SECRET_HASH')
 
 
@@ -71,8 +68,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
 # DEBUG = True
-DEBUG=False
+# DEBUG=False
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 # ALLOWED_HOSTS = ['*']
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
@@ -144,25 +143,25 @@ WSGI_APPLICATION = 'fintech_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'vtu_db',
-        'USER': 'vtu_user',
-        'PASSWORD': 'geepos12@',
-        # 'HOST': 'localhost',
-        'HOST': '206.189.102.119',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'vtu_db',
+#         'USER': 'vtu_user',
+#         'PASSWORD': 'geepos12@',
+#         # 'HOST': 'localhost',
+#         'HOST': '64.225.81.0',
+#         'PORT': '5432',
+#     }
+# }
 
 
 

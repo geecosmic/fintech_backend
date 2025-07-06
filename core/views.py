@@ -30,9 +30,14 @@ from rest_framework.authtoken.models import Token
 
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import AllowAny
-
+from django.http import HttpResponse
+from django.views import View
 import os
 
+class Home(View):
+    def get(self, request):
+        return HttpResponse('its ok')
+    
 
 
 class EditProfileAPIView(APIView):
@@ -567,102 +572,7 @@ class AirtimePurchaseView(APIView):
             "message": "Airtime request sent successfully.",
             "status": "success",
             "api_response": result
-        }, status=200)
-
-
-# class AirtimePurchaseView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request):
-#         print("Incoming POST:", request.data)
-
-#         amount = request.data.get('amount')
-#         phone = request.data.get('phone')
-#         network = request.data.get('network')
-#         user = request.user
-
-#         if not all([amount, phone, network]):
-#             return Response({"error": "All fields are required."}, status=400)
-
-#         try:
-#             amount = int(amount)
-#         except ValueError:
-#             return Response({"error": "Invalid amount format. Use whole numbers only."}, status=400)
-
-#         # 👇 Apply markup if not admin
-#         adjusted_amount = amount
-#         if not user.is_staff:
-            
-#             if network == "01":  # MTN
-#                 adjusted_amount = int(amount * 0.98)  # 2% bonus
-#             elif network == "04":  # 9mobile
-#                 adjusted_amount = int(amount * 0.97)  # 3% bonus
-#             elif network == "02":  # Glo
-#                 adjusted_amount = int(amount * 0.97)  # 3% bonus
-#             elif network == "03":  # Airtel
-#                 adjusted_amount = int(amount * 0.98)  # 2% bonus
-
-
-#         try:
-#             wallet = UserWallet.objects.get(user=user)
-#         except UserWallet.DoesNotExist:
-#             return Response({"error": "Wallet not found."}, status=404)
-
-#         if wallet.balance < Decimal(adjusted_amount):
-#             return Response({"error": "Insufficient wallet balance."}, status=400)
-
-#         # ✅ Deduct from wallet
-#         wallet.balance -= Decimal(adjusted_amount)
-#         wallet.save()
-#         print("✅ Deducted. New balance:", wallet.balance)
-
-#         request_id = str(uuid.uuid4())
-
-#         # ✅ ClubKonnect API call
-#         clubkonnect_url = "https://www.nellobytesystems.com/APIAirtimeV1.asp"
-#         params = {
-#             "UserID": settings.CLUBKONNECT_USERID,
-#             "APIKey": settings.CLUBKONNECT_APIKEY,
-#             "MobileNetwork": network,
-#             "Amount": str(amount),  # Send raw amount to ClubKonnect
-#             "MobileNumber": phone,
-#             "RequestID": request_id,
-#             "CallBackURL": "https://yourdomain.com/webhook/"  # optional
-#         }
-
-#         try:
-#             response = requests.get(clubkonnect_url, params=params, timeout=10)
-#             result = response.json()
-
-#             api_status = result.get("Status") or result.get("status")
-#             if api_status and api_status.lower() in ["successful", "order_received"]:
-#                 final_status = "success"
-#             else:
-#                 wallet.balance += Decimal(adjusted_amount)  # refund
-#                 wallet.save()
-#                 final_status = "failed"
-
-#         except Exception as e:
-#             wallet.balance += Decimal(adjusted_amount)  # refund
-#             wallet.save()
-#             return Response({"error": f"API request failed: {str(e)}"}, status=500)
-
-#         # ✅ Save transaction
-#         Transaction.objects.create(
-#             user=user,
-#             txn_type='airtime',
-#             amount=Decimal(adjusted_amount),
-#             status=final_status,
-#             reference=request_id,
-#             meta=result
-#         )
-
-#         return Response({
-#             "message": "Airtime request sent.",
-#             "status": final_status,
-#             "api_response": result
-#         }, status=200)
-    
+        }, status=200) 
     
 
 
@@ -1224,109 +1134,6 @@ def get_electricity_providers(request):
 
 
 
-
-# @csrf_exempt
-# @login_required
-# def buy_electricity(request):
-#     if request.method != 'POST':
-#         return JsonResponse({'error': 'Only POST method allowed'}, status=405)
-
-#     user = request.user
-#     # data = request.POST
-#     data = json.loads(request.body)
-
-
-#     disco = data.get('disco')  # e.g. "01"
-#     meter_no = data.get('meter_no')
-#     meter_type = data.get('meter_type')  # "01" or "02"
-#     phone = data.get('phone')
-#     # amount = Decimal(data.get('amount'))
-#     try:
-#         amount = Decimal(data.get('amount'))
-#     except:
-#         return JsonResponse({'error': 'Invalid amount'}, status=400)
-
-
-#     if not all([disco, meter_no, meter_type, phone, amount]):
-#         return JsonResponse({'error': 'All fields are required'}, status=400)
-
-#     try:
-#         wallet = UserWallet.objects.get(user=user)
-#         if wallet.balance < amount:
-#             return JsonResponse({'error': 'Insufficient wallet balance.'}, status=400)
-#     except UserWallet.DoesNotExist:
-#         return JsonResponse({'error': 'Wallet not found.'}, status=404)
-
-#     request_id = str(uuid.uuid4())
-
-#     url = (
-#         f"{settings.CLUBKONNECT_ELECTRICITY_URL}?"
-#         f"UserID={settings.CLUBKONNECT_USERID}&APIKey={settings.CLUBKONNECT_APIKEY}"
-#         f"&ElectricCompany={disco}&MeterType={meter_type}&MeterNo={meter_no}"
-#         f"&Amount={amount}&PhoneNo={phone}&RequestID={request_id}&CallBackURL={settings.CLUBKONNECT_CALLBACK}"
-#     )
-
-    
-
-#     response = requests.get(url)
-#     # res_data = response.json()
-#     try:
-#         res_data = response.json()
-#     except ValueError:
-#         return JsonResponse({
-#         'error': 'Invalid response from provider',
-#         'detail': response.text[:200]  # for debugging
-#        }, status=502)
-
-
-#     # Save ElectricityTransaction
-#     elec_txn = ElectricityTransaction.objects.create(
-#         user=user,
-#         request_id=request_id,
-#         order_id=res_data.get('orderid', ''),
-#         disco=disco,
-#         meter_no=meter_no,
-#         meter_type=meter_type,
-#         phone=phone,
-#         amount=amount,
-#         token=res_data.get('metertoken', ''),
-#         status=res_data.get('status', 'FAILED')
-#     )
-
-#     # Debit wallet only if order was received
-#     if res_data.get('statuscode') == "100":
-#         wallet.balance -= amount
-#         wallet.save()
-
-#         # Save general Transaction
-#         Transaction.objects.create(
-#             user=user,
-#             txn_type='electricity',
-#             amount=amount,
-#             status='success',
-#             reference=request_id
-#         )
-#         return JsonResponse({
-#             'success': True,
-#             'message': 'Electricity purchase successful',
-#             'order_id': res_data.get('orderid'),
-#             'token': res_data.get('metertoken')
-#         })
-
-#     # Save failed transaction
-#     Transaction.objects.create(
-#         user=user,
-#         txn_type='electricity',
-#         amount=amount,
-#         status='failed',
-#         reference=request_id
-#     )
-
-#     return JsonResponse({'error': 'Electricity purchase failed', 'detail': res_data})
-
-
-
-
 # # --------------WITHDRAWAL VIEW ------------------------
 
 class WithdrawFundsView(APIView):
@@ -1373,108 +1180,6 @@ class WithdrawFundsView(APIView):
             "account_number": account_number,
             "account_name": account_name
         }, status=status.HTTP_200_OK)
-
-
-
-
-# -------------------------TEST MODE AIRTIME-----------------------------
-
-# class AirtimePurchaseView(APIView):
-#     permission_classes = [IsAuthenticated]
-#     TEST_MODE = True  # Toggle this to False when you're ready for live use
-
-#     def post(self, request):
-#         print("📥 Incoming POST:", request.data)
-
-#         amount_raw = request.data.get('amount')
-#         phone = request.data.get('phone')
-#         network = request.data.get('network')  # Should be "01", "02", etc.
-#         user = request.user
-
-#         if not all([amount_raw, phone, network]):
-#             return Response({"error": "All fields are required."}, status=400)
-
-#         try:
-#             amount = float(amount_raw)
-#         except ValueError:
-#             return Response({"error": "Invalid amount format."}, status=400)
-
-#         # Apply markup if user is not admin
-#         adjusted_amount = amount
-#         if not user.is_staff:
-#             if network == "01":       # MTN
-#                 adjusted_amount *= 1.02
-#             elif network == "04":     # 9mobile
-#                 adjusted_amount *= 1.05
-#             elif network == "02":     # Glo
-#                 adjusted_amount *= 1.06
-#             elif network == "03":     # Airtel
-#                 adjusted_amount *= 1.02
-
-#         adjusted_amount = round(adjusted_amount)
-
-#         # Wallet deduction
-#         try:
-#             wallet = UserWallet.objects.get(user=user)
-#         except UserWallet.DoesNotExist:
-#             return Response({"error": "Wallet not found."}, status=404)
-
-#         if wallet.balance < adjusted_amount:
-#             return Response({"error": "Insufficient wallet balance."}, status=400)
-
-#         wallet.balance -= Decimal(adjusted_amount)
-#         wallet.save()
-
-#         request_id = str(uuid.uuid4())
-
-#         # Simulated or real API request
-#         if self.TEST_MODE:
-#             print("🧪 TEST MODE: Skipping real API call.")
-#             result = {
-#                 "status": "successful",
-#                 "message": "Simulated airtime top-up",
-#                 "simulated": True,
-#                 "network": network,
-#                 "phone": phone
-#             }
-#         else:
-#             clubkonnect_url = "https://www.nellobytesystems.com/APIAirtimeV1.asp"
-#             params = {
-#                 "UserID": settings.CLUBKONNECT_USERID,
-#                 "APIKey": settings.CLUBKONNECT_APIKEY,
-#                 "MobileNetwork": network,
-#                 "Amount": str(amount),  # original amount sent to API
-#                 "MobileNumber": phone,
-#                 "RequestID": request_id,
-#                 "CallBackURL": settings.CLUBKONNECT_CALLBACK
-#             }
-
-#             try:
-#                 response = requests.get(clubkonnect_url, params=params, timeout=10)
-#                 result = response.json()
-#             except Exception as e:
-#                 wallet.balance += Decimal(adjusted_amount)
-#                 wallet.save()
-#                 return Response({"error": f"API request failed: {str(e)}"}, status=500)
-
-#         # Record transaction
-#         Transaction.objects.create(
-#             user=user,
-#             txn_type='airtime',
-#             amount=Decimal(adjusted_amount),
-#             status=result.get("status", "failed").lower(),
-#             reference=request_id,
-#             meta=result
-#         )
-
-#         return Response({
-#             "message": "Airtime request processed.",
-#             "test_mode": self.TEST_MODE,
-#             "amount_deducted": str(adjusted_amount),
-#             "original_amount": str(amount),
-#             "network": network,
-#             "api_response": result
-#         }, status=200)
 
 
 
