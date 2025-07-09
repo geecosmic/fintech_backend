@@ -73,7 +73,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # DEBUG=False
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-# ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['192.168.0.199']
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 
@@ -222,3 +222,13 @@ STORAGES = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Or another provider (e.g., smtp.zoho.com)
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'alephgeeenterprise@gmail.com'     # Your email
+EMAIL_HOST_PASSWORD = 'ghxc uwnd wshn lqgm'  
+DEFAULT_FROM_EMAIL = 'alephgeeenterprise@gmail.com'

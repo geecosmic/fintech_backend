@@ -134,6 +134,96 @@ def login(request):
     return Response({'token': token.key})
 
 
+# ===========FORGOT PASSWORD=======================
+
+# from django.core.mail import send_mail
+# from django.utils.crypto import get_random_string
+# from django.contrib.auth.models import User
+# import logging
+# from django.contrib import messages
+
+# logger = logging.getLogger(__name__)
+
+
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+class RequestPasswordResetView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+
+        try:
+            user = User.objects.get(email=email)
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            reset_link = request.build_absolute_uri(
+                reverse('password-reset-confirm', kwargs={'uidb64': uid, 'token': token})
+            )
+
+            send_mail(
+                subject="Password Reset - ZentrusCapital",
+                message=f"Hi {user.username},\n\nClick the link below to reset your password:\n\n{reset_link}\n\nIf you did not request a password reset, please ignore this email.",
+                from_email="alephgeeenterprise@gmail.com",
+                recipient_list=[email],
+                fail_silently=False,
+            )
+
+            return Response({'message': 'Password reset instructions sent to your email.'})
+        except User.DoesNotExist:
+            return Response({'error': 'User with that email not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+
+
+
+import base64
+
+from django.utils.http import urlsafe_base64_decode
+
+from django.contrib.auth.models import User
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from rest_framework.authtoken.models import Token  # if you're using DRF's tokens
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        token = request.data.get('token')
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+
+        if not all([email, token, new_password, confirm_password]):
+            return Response({'error': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_password != confirm_password:
+            return Response({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+            user_token = Token.objects.get(user=user).key  # or use your custom field e.g., user.token
+
+            if user_token == token:
+                user.set_password(new_password)
+                user.save()
+                return Response({'message': 'Password reset successful.'})
+            else:
+                return Response({'error': 'Invalid token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except User.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Token.DoesNotExist:
+            return Response({'error': 'Token not found for user.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 
