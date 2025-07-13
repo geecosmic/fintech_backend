@@ -1,6 +1,8 @@
 from django.urls import path
 from .views import register
 from .import views
+from django.contrib.auth import views as auth_views
+
 from rest_framework.authtoken.views import obtain_auth_token
 from .views import Home,RequestPasswordResetView,PasswordResetConfirmView,withdraw_funds,get_electricity_providers,verify_meter_number,verify_smartcard,EditProfileAPIView,flutterwave_webhook,TransactionHistoryView,FundWalletView,list_data_plans,user_dashboard,CustomLoginView,buy_electricity,CableTVPurchaseView,AirtimePurchaseView,DataPurchaseView,get_or_create_virtual_account
 
@@ -67,4 +69,9 @@ urlpatterns = [
 
     path('withdraw/', withdraw_funds, name='withdraw_funds'),
 
+    path('accounts/password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('accounts/password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('accounts/reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('accounts/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 ]
+

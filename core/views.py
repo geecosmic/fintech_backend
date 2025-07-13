@@ -322,10 +322,7 @@ def get_or_create_virtual_account(request):
             with transaction.atomic():
                 # ✅ Create Flutterwave Virtual Account
                 url = "https://api.flutterwave.com/v3/virtual-account-numbers"
-                # headers = {
-                #     "Authorization": f"Bearer {settings.FLW_SECRET_KEY}",
-                #     "Content-Type": "application/json"
-                # }
+              
 
                 headers = {
                     "Authorization": f"Bearer {settings.FLUTTERWAVE_SECRET_KEY}",
@@ -612,14 +609,16 @@ class AirtimePurchaseView(APIView):
             "Amount": str(original_amount),
             "MobileNumber": phone,
             "RequestID": request_id,
-            "CallBackURL": "https://yourdomain.com/webhook/"
+            # "CallBackURL": "https://yourdomain.com/webhook/"
+            "CallBackURL":settings.CLUBKONNECT_CALLBACK
+
         }
 
         # Wrap in a DB transaction to ensure rollback if something fails
         with transaction.atomic():
             wallet.balance -= Decimal(adjusted_amount)
             wallet.save()
-            print("✅ Deducted from wallet. New balance:", wallet.balance)
+            # print("✅ Deducted from wallet. New balance:", wallet.balance)
 
             try:
                 response = requests.get(clubkonnect_url, params=params, timeout=10)
@@ -661,7 +660,8 @@ class AirtimePurchaseView(APIView):
         return Response({
             "message": "Airtime request sent successfully.",
             "status": "success",
-            "api_response": result
+            "api_response": result,
+            "new_balance": str(wallet.balance) 
         }, status=200) 
     
 
